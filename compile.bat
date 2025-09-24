@@ -1,0 +1,1 @@
+transcrypt -b -m -e 6 -n main.py
