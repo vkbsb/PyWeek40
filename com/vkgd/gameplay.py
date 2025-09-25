@@ -7,6 +7,7 @@ from com.pixi import PIXI
 from com.vkgd.common.scene import Scene
 from com.vkgd.common.constants import *
 from com.vkgd.Game2048 import Game2048
+from com.vkgd.assets import FONT_CONFIG
 
 class GameplayScreen(Scene):
     def __init__(self, rootStage):
@@ -14,6 +15,18 @@ class GameplayScreen(Scene):
         self.game = Game2048()
         self.graphics = PIXI.Graphics()
         self.stage.addChild(self.graphics)
+
+        self.textDisplay = []
+        for r in range(self.game.size):
+            row = []
+            for c in range(self.game.size):
+                text = PIXI.BitmapText("", FONT_CONFIG)
+                text.visible = False
+                row.append(text)
+                self.stage.addChild(text)
+            self.textDisplay.append(row)
+    
+
         self.drawGrid()
 
     def drawGrid(self):
@@ -33,6 +46,14 @@ class GameplayScreen(Scene):
                 self.graphics.drawRect(x, y, cellSize - 5, cellSize - 5)
                 self.graphics.endFill()
 
+                if(value != 0):
+                    self.textDisplay[r][c].text = str(value)
+                    self.textDisplay[r][c].visible = True
+                    self.textDisplay[r][c].x = x + cellSize / 2 - self.textDisplay[r][c].width / 2
+                    self.textDisplay[r][c].y = y + cellSize / 2 - self.textDisplay[r][c].height / 2
+                else:
+                    self.textDisplay[r][c].visible = False
+
     def update(self, dt):
         pass
 
@@ -41,9 +62,10 @@ class GameplayScreen(Scene):
             direction = params
             if direction in [Game2048.move_left, Game2048.move_right, Game2048.move_up, Game2048.move_down]:
                 if self.game.move(direction):
-                    self.game.add_random_tile()
+                    self.game.spawn_block()
                     print(f"Moved {direction}")
-                    self.game.print_board()
+                    # self.game.print_board()
+                    self.drawGrid()
 
     def isComplete(self):
         return False

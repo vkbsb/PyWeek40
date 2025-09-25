@@ -50,7 +50,14 @@ class Game2048:
 
     def merge_line(self, line):
         # Slide non-zeros
-        new_line = [i for i in line if i != 0]
+        # new_line = [i for i in line if i != 0]
+        
+        # Traditional loop approach
+        new_line = []
+        for i in line:
+            if i != 0:
+                new_line.append(i)
+
         merged_line = []
         skip = False
         for i in range(len(new_line)):
@@ -63,7 +70,19 @@ class Game2048:
             else:
                 merged_line.append(new_line[i])
         # Pad with zeros
-        merged_line.extend([0] * (self.size - len(merged_line)))
+        # merged_line.extend([0] * (self.size - len(merged_line)))
+        # Calculate how many zeros we need
+        remaining_spaces = self.size - len(merged_line)
+
+        # Create a list of zeros
+        zeros_to_add = []
+        for i in range(remaining_spaces):
+            zeros_to_add.append(0)
+
+        # Add all zeros to the merged_line
+        for zero in zeros_to_add:
+            merged_line.append(zero)
+
         return merged_line
 
     def move(self, direction):

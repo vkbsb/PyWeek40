@@ -8,6 +8,7 @@ from com.vkgd.splash import LoadingScreen
 from com.vkgd.gameplay import GameplayScreen
 from com.vkgd.common.constants import *
 from com.vkgd.Game2048 import Game2048
+from com.vkgd.assets import ASSETS
 
 class Game:
     def __init__(self):
@@ -29,6 +30,10 @@ class Game:
 
         #create loading screen for the game.
         self.screen = LoadingScreen(self.rootStage) 
+
+        #load assets
+        PIXI.loader.add(ASSETS)
+
         PIXI.loader.load(self.onAssetsLoaded)
 
         #schedule update for the game loop.    
@@ -82,7 +87,8 @@ class Game:
         self.rootStage.y = (viewH - worldHeight) / 2
 
 
-    def onAssetsLoaded(self):
+    def onAssetsLoaded(self, resources):
+        #create gameplay screen for the game.
         self.screen.cleanup()
         print("StageChildren: ", self.rootStage.children.length)
         self.screen = GameplayScreen(self.rootStage)
