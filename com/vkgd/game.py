@@ -5,7 +5,9 @@ __pragma__ ('noskip')
 
 from com.pixi import PIXI
 from com.vkgd.splash import LoadingScreen
+from com.vkgd.gameplay import GameplayScreen
 from com.vkgd.common.constants import *
+from com.vkgd.Game2048 import Game2048
 
 class Game:
     def __init__(self):
@@ -35,6 +37,22 @@ class Game:
         # Register once
         window.addEventListener('resize', self.onResize)
         window.addEventListener('touchstart', self.onMouseDown)
+        window.addEventListener('keydown', self.onKeyDown)
+
+    def onKeyDown(self, e):
+        if self.screen != None and hasattr(self.screen, 'game'):
+            direction = None
+            if e.key == 'ArrowLeft':
+                direction = Game2048.move_left
+            elif e.key == 'ArrowRight':
+                direction = Game2048.move_right
+            elif e.key == 'ArrowUp':
+                direction = Game2048.move_up
+            elif e.key == 'ArrowDown':
+                direction = Game2048.move_down
+            if direction != None:
+                self.screen.onEvent(EVENT_MOVE, direction)
+            e.preventDefault()
 
     def onMouseDown(self, e):
         touch = e.changedTouches[0]
@@ -65,11 +83,9 @@ class Game:
 
 
     def onAssetsLoaded(self):
-        pass
-        # #self.player.addChild()
-        # self.screen.cleanup()
-        # print("StageChildren: ", self.app.stage.children.length)
-        # self.screen = GameOverScreen(self.app.stage)
+        self.screen.cleanup()
+        print("StageChildren: ", self.rootStage.children.length)
+        self.screen = GameplayScreen(self.rootStage)
 
     def update(self, dt):
         self.screen.update(dt)
