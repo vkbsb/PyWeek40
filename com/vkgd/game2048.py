@@ -1,19 +1,28 @@
 import random
-from typing import List, Tuple, Optional, Dict, Any
+# The following import is removed to comply with the request:
+# from typing import List, Tuple, Optional, Dict, Any 
 
 class Game2048:
     """
     Implements the core game logic for 2048, including movement, merging, 
     and tracking the movement and merge sources of all resulting tiles.
     """
-    
+    move_left = 'left'
+    move_right = 'right'
+    move_up = 'up'
+    move_down = 'down'
     def __init__(self, size: int = 4):
         """Initializes the game board and adds the first two tiles."""
         if size < 2:
             raise ValueError("Board size must be at least 2.")
         self.size = size
         # The board is a list of lists representing the grid.
-        self.board = [[0] * size for _ in range(size)]
+        self.board = []
+        for r in range(size):
+            row = []
+            for c in range(size):
+                row.append(0)
+            self.board.append(row)
         self.score = 0
         self.game_over = False
         
@@ -21,7 +30,8 @@ class Game2048:
         self.add_random_tile()
         self.add_random_tile()
 
-    def add_random_tile(self) -> Optional[Tuple[int, int, int]]:
+    # Original type hint removed: -> Optional[Tuple[int, int, int]]
+    def add_random_tile(self):
         """
         Adds a new tile (2 or 4) to a random empty spot.
         Returns the (row, col, value) of the new tile, or None if no empty spots.
@@ -42,7 +52,8 @@ class Game2048:
         self.board[r][c] = value
         return (r, c, value)
 
-    def _slide_and_merge_line_with_tracking(self, line_data: List[Tuple[int, Tuple[int, int]]]) -> Tuple[List[int], int, List[Dict[str, Any]]]:
+    # Original type hint removed: (self, line_data: list[tuple[int, tuple[int, int]]]) -> tuple[List[int], int, list[dict]]
+    def _slide_and_merge_line_with_tracking(self, line_data):
         """
         Performs the slide and merge operation on a single line, tracking the source 
         coordinates of all resulting tiles.
@@ -104,11 +115,13 @@ class Game2048:
                 i += 1
                 
         # Pad with zeros
-        new_line_values.extend([0] * (self.size - len(new_line_values)))
+        for x in range(self.size - len(new_line_values)):
+            new_line_values.append(0)
         
         return new_line_values, score_added, move_actions
 
-    def move(self, direction: str) -> Tuple[bool, int, List[Dict[str, Any]], Optional[Tuple[int, int, int]]]:
+    # Original type hint removed: -> Tuple[bool, int, List[Dict[str, Any]], Optional[Tuple[int, int, int]]]
+    def move(self, direction: str):
         """
         Performs a move in the given direction and tracks all resulting tile movements and merges.
         
@@ -119,8 +132,8 @@ class Game2048:
             (moved, score_added, move_details, new_tile_info):
             - moved (bool): True if the board state changed.
             - score_added (int): The total score added in this move.
-            - move_details (List[dict]): List of 'move', 'merge', or 'new_tile' actions.
-            - new_tile_info (Tuple[int, int, int] | None): (r, c, value) of the newly added tile.
+            - move_details (list of dicts): List of 'move', 'merge', or 'new_tile' actions.
+            - new_tile_info (tuple | None): (r, c, value) of the newly added tile.
         """
         if self.game_over:
             return False, 0, [], None
@@ -146,8 +159,9 @@ class Game2048:
                 total_score_added += score_added
 
                 # 3. Map move_actions to final (r, c) coordinates and update board row
-                final_row = [0] * self.size
-                
+                # final_row = [0] * self.size
+                final_row = [0 for _ in range(self.size)]
+
                 for action in move_actions:
                     # 'final_index' is the logical position (0-3) in the resulting compacted line.
                     final_r = r
@@ -181,7 +195,8 @@ class Game2048:
                 total_score_added += score_added
                 
                 # 3. Map move_actions to final (r, c) coordinates and update board column
-                final_col = [0] * self.size
+                # final_col = [0] * self.size
+                final_col = [0 for _ in range(self.size)]
                 
                 for action in move_actions:
                     # 'final_index' is the logical position (0-3) in the resulting compacted column.
@@ -210,7 +225,7 @@ class Game2048:
         new_tile_info = None
         
         if moved:
-            new_tile_info = self.add_random_tile()
+            # new_tile_info = self.add_random_tile()
             self.score += total_score_added
             
             # Append the new tile action to the move details
@@ -228,7 +243,8 @@ class Game2048:
             self.game_over = self._check_game_over()
             return moved, 0, [], None
 
-    def _check_game_over(self) -> bool:
+    # Original type hint removed: -> bool
+    def _check_game_over(self):
         """Checks if there are any valid moves left."""
         # 1. Check for empty cells 
         for r in range(self.size):
@@ -288,6 +304,7 @@ if __name__ == '__main__':
                 print("\n--- Move Details ---")
                 for detail in move_details:
                     if detail['type'] == 'move':
+                        # We use .get('source') here as 'source' is not present for 'merge' actions
                         print(f"  > Move: {detail['value']} from {detail.get('source')} to {detail['end']}")
                     elif detail['type'] == 'merge':
                         print(f"  > MERGE: {detail['sources']} combined into {detail['value']} at {detail['end']}")

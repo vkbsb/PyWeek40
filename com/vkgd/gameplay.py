@@ -49,24 +49,75 @@ class GameplayScreen(Scene):
                 if(value != 0):
                     self.textDisplay[r][c].text = str(value)
                     self.textDisplay[r][c].visible = True
+                    #place the text at the right place.
                     self.textDisplay[r][c].x = x + cellSize / 2 - self.textDisplay[r][c].width / 2
                     self.textDisplay[r][c].y = y + cellSize / 2 - self.textDisplay[r][c].height  + 6
                 else:
                     self.textDisplay[r][c].visible = False
 
     def update(self, dt):
+        PIXI.tweenManager.js_update()
+        pass
+
+    def getPosition(self, r, c):
+        cellSize = 128
+        offsetX = (DESIGN_WIDTH - self.game.size * cellSize) / 2
+        offsetY = (DESIGN_HEIGHT - self.game.size * cellSize) / 2
+        x = offsetX + c * cellSize
+        y = offsetY + r * cellSize
+        return (x, y)
+
+    def createBlock(self, r, c, value):
+        # Placeholder for creating a new block graphic
+        graphics = PIXI.Graphics()
+        (x, y) = self.getPosition(r, c)
+        graphics.x = x
+        graphics.y = y
+        color = 0xffcc00
+        graphics.beginFill(color)
+        graphics.drawRect(0, 0, cellSize - 5, cellSize - 5)
+        graphics.endFill()
+
+        self.stage.addChild(graphics)
+        return graphics
+        
+    def animateBoard(self, merged_coords):
+        # Placeholder for animation logic
+        for mc in merged_coords:
+            print(f"Merged at: {mc}")
+            #create a new graphics object to animate for each merged coordinate
+            if(mc.type == 'move'):
+                r, c = mc.source
+                value = mc.value
+                block = self.createBlock(r, c, value)
+
+                r, c = mc.end
+                (tx,ty) = self.getPosition(r, c)
+
+                # After animation, remove the block (in real case, you would update the existing block)
+                def onComplete():
+                    print("Deleting.`")
+                    self.stage.removeChild(block)
+                blockTween = PIXI.tweenManager.createTween(block)
+                blockTween.js_from({'x':block.x, 'y':block.y}).to({'x':tx, 'y':ty})
+                blockTween.time = 300
+                blockTween.on('end', onComplete)
+                blockTween.start()
+        # self.drawGrid()
         pass
 
     def onEvent(self, e_name, params):
         if e_name == EVENT_MOVE:
             direction = params
             if direction in [Game2048.move_left, Game2048.move_right, Game2048.move_up, Game2048.move_down]:
+                self.game.display_board()
                 (moved, score_added, merged_coords) = self.game.move(direction)
                 if moved:
-                    self.game.add_random_tile()
-                    self.drawGrid()
-                    if self.game.is_game_over():
-                        print("Game Over!")
+                    self.animateBoard(merged_coords)
+                    # print(f"Move: {direction}, Moved: {moved}, Score Added: {score_added}, Merged: {merged_coords}")
+                    # self.game.add_random_tile()
+                    # self.drawGrid()                
+                self.game.display_board()
 
     def isComplete(self):
         return False
