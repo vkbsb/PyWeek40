@@ -1,6 +1,6 @@
 ASSETS = [
-    {"name": "bmpfont", "url": "assets/test.fnt"},
+    {"name": "bmpfont", "url": "assets/KennyPixelSquare.fnt"},
     {"name": "sparks", "url": "assets/images/Sparks.png"},
 ]
 
-FONT_CONFIG = { 'font': '64px Roboto', 'align': 'center' }
+FONT_CONFIG = { 'font': '64px Kenney-Pixel-Square', 'align': 'center' }

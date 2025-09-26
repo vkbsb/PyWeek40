@@ -40,7 +40,7 @@ class GameplayScreen(Scene):
             for c in range(self.game.size):
                 x = offsetX + c * cellSize
                 y = offsetY + r * cellSize
-                value = self.game.grid[r][c]
+                value = self.game.board[r][c]
                 color = 0xcccccc if value == 0 else 0xffcc00
                 self.graphics.beginFill(color)
                 self.graphics.drawRect(x, y, cellSize - 5, cellSize - 5)
@@ -50,7 +50,7 @@ class GameplayScreen(Scene):
                     self.textDisplay[r][c].text = str(value)
                     self.textDisplay[r][c].visible = True
                     self.textDisplay[r][c].x = x + cellSize / 2 - self.textDisplay[r][c].width / 2
-                    self.textDisplay[r][c].y = y + cellSize / 2 - self.textDisplay[r][c].height / 2
+                    self.textDisplay[r][c].y = y + cellSize / 2 - self.textDisplay[r][c].height  + 6
                 else:
                     self.textDisplay[r][c].visible = False
 
@@ -61,11 +61,12 @@ class GameplayScreen(Scene):
         if e_name == EVENT_MOVE:
             direction = params
             if direction in [Game2048.move_left, Game2048.move_right, Game2048.move_up, Game2048.move_down]:
-                if self.game.move(direction):
-                    self.game.spawn_block()
-                    print(f"Moved {direction}")
-                    # self.game.print_board()
+                (moved, score_added, merged_coords) = self.game.move(direction)
+                if moved:
+                    self.game.add_random_tile()
                     self.drawGrid()
+                    if self.game.is_game_over():
+                        print("Game Over!")
 
     def isComplete(self):
         return False
