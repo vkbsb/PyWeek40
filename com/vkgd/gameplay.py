@@ -12,7 +12,7 @@ from com.vkgd.assets import FONT_CONFIG, HEADER_FONT_CONFIG
 cellSize = 128
 
 cellSizeX = 128 + 48
-cellSizeY = 256 + 48
+cellSizeY = 128 + 48
 gapSize = 5
 
 class GameplayScreen(Scene):
@@ -22,6 +22,9 @@ class GameplayScreen(Scene):
         self.gameOver = False
         self.score = 0
 
+        self.graphics = PIXI.Graphics()
+        self.stage.addChild(self.graphics)
+
         mymap = PIXI.Sprite(PIXI.Texture.js_from("map"))
         mymap.x = (DESIGN_WIDTH/2)
         mymap.y = (DESIGN_HEIGHT/2)
@@ -29,8 +32,6 @@ class GameplayScreen(Scene):
         mymap.anchor.y = 0.5
         self.stage.addChild(mymap)
         
-        self.graphics = PIXI.Graphics()
-        self.stage.addChild(self.graphics)
         self.disableInput = False
         self.textDisplay = []
         self.imgDisplay = []
@@ -54,7 +55,7 @@ class GameplayScreen(Scene):
         self.drawGrid()
 
     def drawGrid(self):
-        self.graphics.js_clear()
+        # self.graphics.js_clear()
         self.graphics.lineStyle(2, 0x000000)
         offsetX = (DESIGN_WIDTH - self.game.size * cellSizeX) / 2
         offsetY = (DESIGN_HEIGHT - self.game.size * cellSizeY) / 2

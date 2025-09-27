@@ -13,7 +13,7 @@ ASSETS = [
     {"name":"512", "url":"assets/images/512.png"},
     {"name":"1024", "url":"assets/images/1024.png"},
     {"name":"2048", "url":"assets/images/2048.png"},
-    {"name":"map", "url":"assets/images/map.png"},
+    {"name":"map", "url":"assets/images/map1.png"},
 ]
 
 FONT_CONFIG = { 'font': '64px Kenney-Pixel-Square', 'align': 'center' }
