@@ -9,13 +9,15 @@ from com.vkgd.common.constants import *
 from com.vkgd.Game2048 import Game2048
 from com.vkgd.assets import FONT_CONFIG
 
+cellSize = 128
+
 class GameplayScreen(Scene):
     def __init__(self, rootStage):
         Scene.__init__(self, rootStage)
         self.game = Game2048()
         self.graphics = PIXI.Graphics()
         self.stage.addChild(self.graphics)
-
+        self.disableInput = False
         self.textDisplay = []
         for r in range(self.game.size):
             row = []
@@ -26,13 +28,11 @@ class GameplayScreen(Scene):
                 self.stage.addChild(text)
             self.textDisplay.append(row)
     
-
         self.drawGrid()
 
     def drawGrid(self):
         self.graphics.js_clear()
         self.graphics.lineStyle(2, 0x000000)
-        cellSize = 128
         offsetX = (DESIGN_WIDTH - self.game.size * cellSize) / 2
         offsetY = (DESIGN_HEIGHT - self.game.size * cellSize) / 2
 
@@ -60,7 +60,6 @@ class GameplayScreen(Scene):
         pass
 
     def getPosition(self, r, c):
-        cellSize = 128
         offsetX = (DESIGN_WIDTH - self.game.size * cellSize) / 2
         offsetY = (DESIGN_HEIGHT - self.game.size * cellSize) / 2
         x = offsetX + c * cellSize
@@ -68,11 +67,13 @@ class GameplayScreen(Scene):
         return (x, y)
 
     def createBlock(self, r, c, value):
+        cellSize = 128
         # Placeholder for creating a new block graphic
         graphics = PIXI.Graphics()
         (x, y) = self.getPosition(r, c)
         graphics.x = x
         graphics.y = y
+        print(f"Creating block {value} at ({r},{c}) -> ({x},{y})")
         color = 0xffcc00
         graphics.beginFill(color)
         graphics.drawRect(0, 0, cellSize - 5, cellSize - 5)
@@ -80,41 +81,109 @@ class GameplayScreen(Scene):
 
         self.stage.addChild(graphics)
         return graphics
+    
+    def onAnimationFinished(self):
+        self.disableInput = False
+        self.drawGrid()
+
+    def onSlideAnimationFinished(self):
+        self.drawGrid()
+
+        #if there was no slide anymation, do not add a new tile.
+        if not self.anyslide:
+            self.onAnimationFinished()
+            return
+
+        new_tile_info = self.game.add_random_tile()
+        if new_tile_info:
+            r, c, value = new_tile_info
+            print(f"New tile {value} at ({r},{c})")
+            block = self.createBlock(r, c, value)
+
+            def onCompleted(block):
+                return lambda: self.stage.removeChild(block)
+
+            (tx, ty) = self.getPosition(r, c)
+            block.x = tx
+            block.y = ty
+            block.scale.x = 0.1
+            block.scale.y = 0.1
+
+            blockTween = PIXI.tweenManager.createTween(block.scale)
+            blockTween.js_from({'x': 0.1, 'y':0.1}).to({'x':1, 'y': 1})
+            blockTween.time = 100
+            blockTween.on('end', onCompleted(block))
+            blockTween.start()
+            window.setTimeout(self.onAnimationFinished, 120)
+        elif self.game.game_over:
+            print("Game Over!")
         
-    def animateBoard(self, merged_coords):
-        # Placeholder for animation logic
+    def handleMoveAnimation(self, mc):
+        sr, sc = mc.source
+        er, ec = mc.end
+        value = mc.value
+        block = self.createBlock(sr, sc, value)
+        (tx,ty) = self.getPosition(er, ec)
+        (sx, sy) = self.getPosition(sr, sc)
+
+        # print(f"Reset: {sx}, {sy}")
+        #hide the block at current position and animate to new position
+        self.graphics.beginFill(0xcccccc)
+        self.graphics.drawRect(sx, sy, cellSize - 5, cellSize - 5)
+        self.graphics.endFill()
+        self.textDisplay[sr][sc].visible = False
+
+        def onCompleted(block):
+            return lambda: self.stage.removeChild(block)
+
+        blockTween = PIXI.tweenManager.createTween(block)
+        blockTween.js_from({'x':block.x, 'y':block.y}).to({'x':tx, 'y':ty})
+        blockTween.time = 100
+        blockTween.on('end', onCompleted(block))
+        blockTween.start()
+
+    def animateSlide(self, merged_coords):
+        self.anyslide = False
+        self.disableInput = True
         for mc in merged_coords:
-            print(f"Merged at: {mc}")
+            print(f"Type: {mc.js_type}, Source: {mc.source}, End: {mc.end}, Value: {mc.value}")
             #create a new graphics object to animate for each merged coordinate
-            if(mc.type == 'move'):
-                r, c = mc.source
+            if(mc.js_type == 'move'):
+                sr, sc = mc.source
+                er, ec = mc.end
                 value = mc.value
-                block = self.createBlock(r, c, value)
 
-                r, c = mc.end
-                (tx,ty) = self.getPosition(r, c)
+                #skip the animationi if source and end are same
+                if(sr == er and sc == ec):
+                    continue
 
-                # After animation, remove the block (in real case, you would update the existing block)
-                def onComplete():
-                    print("Deleting.`")
-                    self.stage.removeChild(block)
-                blockTween = PIXI.tweenManager.createTween(block)
-                blockTween.js_from({'x':block.x, 'y':block.y}).to({'x':tx, 'y':ty})
-                blockTween.time = 300
-                blockTween.on('end', onComplete)
-                blockTween.start()
-        # self.drawGrid()
-        pass
+                self.anyslide = True
+                self.handleMoveAnimation(mc)
+            elif(mc.js_type == 'merge'):
+                #for merge, we will animate both the source and end blocks.
+                (sr, sc) = mc.sources[1]
+                er, ec = mc.end
+                value = mc.value
+                if(sr == er and sc == ec):
+                    (sr, sc) = mc.sources[0]
+                self.anyslide = True
+                new_mc = {"value": value, "source": (sr, sc), "end": (er, ec)}
+                self.handleMoveAnimation(new_mc)
+                
+        #redraw the grid after animation
+        window.setTimeout(self.onSlideAnimationFinished, 120)
 
     def onEvent(self, e_name, params):
         if e_name == EVENT_MOVE:
+            if self.disableInput:
+                return
             direction = params
             if direction in [Game2048.move_left, Game2048.move_right, Game2048.move_up, Game2048.move_down]:
                 self.game.display_board()
                 (moved, score_added, merged_coords) = self.game.move(direction)
                 if moved:
-                    self.animateBoard(merged_coords)
-                    # print(f"Move: {direction}, Moved: {moved}, Score Added: {score_added}, Merged: {merged_coords}")
+                    self.animateSlide(merged_coords)
+                    print(f"Move: {direction}, Moved: {moved}, Score Added: {score_added}, Merged: {merged_coords}")
                     # self.game.add_random_tile()
                     # self.drawGrid()                
                 self.game.display_board()
