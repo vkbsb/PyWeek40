@@ -17,3 +17,4 @@ ASSETS = [
 ]
 
 FONT_CONFIG = { 'font': '64px Kenney-Pixel-Square', 'align': 'center' }
+HEADER_FONT_CONFIG = { 'font': '96px Kenney-Pixel-Square', 'align': 'center' }

@@ -41,7 +41,8 @@ class Game:
         
         # Register once
         window.addEventListener('resize', self.onResize)
-        window.addEventListener('touchstart', self.onMouseDown)
+        window.addEventListener('touchstart', self.onTouchStart)
+        window.addEventListener('mousedown', self.onMouseDown)
         window.addEventListener('keydown', self.onKeyDown)
 
     def onKeyDown(self, e):
@@ -59,7 +60,17 @@ class Game:
                 self.screen.onEvent(EVENT_MOVE, direction)
             e.preventDefault()
 
+
     def onMouseDown(self, e):
+        x = int((e.clientX - self.rootStage.x)/self.scale)
+        y = int((e.clientY - self.rootStage.y)/self.scale)
+        # print(f"x:{x}, y:{y}, rx:{self.rootStage.x}, ry:{self.rootStage.y}")
+        e.preventDefault()
+
+        #send the x,y in the design resolution space with origin at center of screen.
+        self.screen.onEvent(EVENT_MOUSEDOWN, (x,y))
+
+    def onTouchStart(self, e):
         touch = e.changedTouches[0]
         x = int((touch.clientX - self.rootStage.x)/self.scale)
         y = int((touch.clientY - self.rootStage.y)/self.scale)
@@ -95,4 +106,8 @@ class Game:
 
     def update(self, dt):
         self.screen.update(dt)
+        if isinstance(self.screen, GameplayScreen):
+            if self.screen.isComplete():
+                self.screen.cleanup()
+                self.screen = GameOverScreen(self.rootStage)
         PIXI.tweenManager.js_update()
