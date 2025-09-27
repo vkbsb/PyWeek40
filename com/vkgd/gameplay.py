@@ -11,63 +11,98 @@ from com.vkgd.assets import FONT_CONFIG
 
 cellSize = 128
 
+cellSizeX = 128 + 48
+cellSizeY = 256 + 48
+gapSize = 5
+
 class GameplayScreen(Scene):
     def __init__(self, rootStage):
         Scene.__init__(self, rootStage)
         self.game = Game2048()
+
+        mymap = PIXI.Sprite(PIXI.Texture.js_from("map"))
+        mymap.x = (DESIGN_WIDTH/2)
+        mymap.y = (DESIGN_HEIGHT/2)
+        mymap.anchor.x = 0.5
+        mymap.anchor.y = 0.5
+        self.stage.addChild(mymap)
+
+
         self.graphics = PIXI.Graphics()
         self.stage.addChild(self.graphics)
         self.disableInput = False
         self.textDisplay = []
+        self.imgDisplay = []
+
         for r in range(self.game.size):
             row = []
+            imRow = []
             for c in range(self.game.size):
+                spr = PIXI.Sprite()
+                spr.visible = False
+                imRow.append(spr)
+                self.stage.addChild(spr)
+
                 text = PIXI.BitmapText("", FONT_CONFIG)
                 text.visible = False
                 row.append(text)
                 self.stage.addChild(text)
+
+            self.imgDisplay.append(imRow)
             self.textDisplay.append(row)
-    
         self.drawGrid()
 
     def drawGrid(self):
         self.graphics.js_clear()
         self.graphics.lineStyle(2, 0x000000)
-        offsetX = (DESIGN_WIDTH - self.game.size * cellSize) / 2
-        offsetY = (DESIGN_HEIGHT - self.game.size * cellSize) / 2
+        offsetX = (DESIGN_WIDTH - self.game.size * cellSizeX) / 2
+        offsetY = (DESIGN_HEIGHT - self.game.size * cellSizeY) / 2
 
         for r in range(self.game.size):
             for c in range(self.game.size):
-                x = offsetX + c * cellSize
-                y = offsetY + r * cellSize
+                x = offsetX + c * cellSizeX
+                y = offsetY + r * cellSizeY
                 value = self.game.board[r][c]
                 color = 0xcccccc if value == 0 else 0xffcc00
                 self.graphics.beginFill(color)
-                self.graphics.drawRect(x, y, cellSize - 5, cellSize - 5)
+                self.graphics.drawRect(x, y, cellSizeX - gapSize, cellSizeY - gapSize)
                 self.graphics.endFill()
 
                 if(value != 0):
                     self.textDisplay[r][c].text = str(value)
                     self.textDisplay[r][c].visible = True
                     #place the text at the right place.
-                    self.textDisplay[r][c].x = x + cellSize / 2 - self.textDisplay[r][c].width / 2
-                    self.textDisplay[r][c].y = y + cellSize / 2 - self.textDisplay[r][c].height  + 6
+                    self.textDisplay[r][c].x = x + cellSizeX / 2 - self.textDisplay[r][c].width / 2
+                    self.textDisplay[r][c].y = y + cellSizeY / 2 - self.textDisplay[r][c].height  + 6
+
+                    tex = PIXI.Texture.js_from(str(value))
+                    self.imgDisplay[r][c].texture = tex
+                    self.imgDisplay[r][c].visible = True
+                    self.imgDisplay[r][c].x = x + (cellSizeX - gapSize)/2
+                    self.imgDisplay[r][c].y = y + (cellSizeY - gapSize)#/2
+                    self.imgDisplay[r][c].anchor.x = 0.5
+                    self.imgDisplay[r][c].anchor.y = 1
+                    self.imgDisplay[r][c].width = tex.width
+                    self.imgDisplay[r][c].height = tex.height
+                    print(f"Set image {value} at ({r},{c}) to size {tex.width}x{tex.height}")
+                    # self.imgDisplay[r][c].scale = 1
+                
                 else:
                     self.textDisplay[r][c].visible = False
+                    self.imgDisplay[r][c].visible = False
 
     def update(self, dt):
         PIXI.tweenManager.js_update()
         pass
 
     def getPosition(self, r, c):
-        offsetX = (DESIGN_WIDTH - self.game.size * cellSize) / 2
-        offsetY = (DESIGN_HEIGHT - self.game.size * cellSize) / 2
-        x = offsetX + c * cellSize
-        y = offsetY + r * cellSize
+        offsetX = (DESIGN_WIDTH - self.game.size * cellSizeX) / 2
+        offsetY = (DESIGN_HEIGHT - self.game.size * cellSizeY) / 2
+        x = offsetX + c * cellSizeX
+        y = offsetY + r * cellSizeY
         return (x, y)
 
     def createBlock(self, r, c, value):
-        cellSize = 128
         # Placeholder for creating a new block graphic
         graphics = PIXI.Graphics()
         (x, y) = self.getPosition(r, c)
@@ -76,7 +111,7 @@ class GameplayScreen(Scene):
         print(f"Creating block {value} at ({r},{c}) -> ({x},{y})")
         color = 0xffcc00
         graphics.beginFill(color)
-        graphics.drawRect(0, 0, cellSize - 5, cellSize - 5)
+        graphics.drawRect(0, 0, cellSizeX - gapSize, cellSizeY - gapSize)
         graphics.endFill()
 
         self.stage.addChild(graphics)
@@ -129,7 +164,7 @@ class GameplayScreen(Scene):
         # print(f"Reset: {sx}, {sy}")
         #hide the block at current position and animate to new position
         self.graphics.beginFill(0xcccccc)
-        self.graphics.drawRect(sx, sy, cellSize - 5, cellSize - 5)
+        self.graphics.drawRect(sx, sy, cellSizeX - gapSize, cellSizeY - gapSize)
         self.graphics.endFill()
         self.textDisplay[sr][sc].visible = False
 
