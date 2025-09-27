@@ -257,6 +257,11 @@ class GameplayScreen(Scene):
         scoretxt.y = (DESIGN_HEIGHT - scoretxt.height)/2 + 20
         graphics.addChild(scoretxt)
 
+        restarttxt = PIXI.BitmapText("Click / Tap to Restart", FONT_CONFIG)
+        restarttxt.x = (DESIGN_WIDTH - restarttxt.width)/2
+        restarttxt.y = (DESIGN_HEIGHT - restarttxt.height)/2 + 250
+        graphics.addChild(restarttxt)
+
         self.stage.addChild(graphics)
         Tween = PIXI.tweenManager.createTween(graphics)
         Tween.js_from({'alpha': 0}).to({'alpha': 0.7})
