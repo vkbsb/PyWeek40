@@ -1,6 +1,7 @@
 ASSETS = [
     {"name": "bmpfont", "url": "assets/KennyPixelSquare.fnt"},
     {"name": "sparks", "url": "assets/images/Sparks.png"},
+    {"name": "vfx_blast", "url": "assets/blast_effect.json"},
     #add all the images in assets/images/ here
     {"name":"2", "url":"assets/images/2.png"},
     {"name":"4", "url":"assets/images/4.png"},

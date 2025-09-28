@@ -9,6 +9,7 @@ from com.vkgd.common.constants import *
 from com.vkgd.Game2048 import Game2048
 from com.vkgd.assets import *
 from com.howler import PyHowl
+import random
 
 cellSize = 128
 
@@ -60,6 +61,10 @@ class GameplayScreen(Scene):
             self.imgDisplay.append(imRow)
             self.textDisplay.append(row)
         self.drawGrid()
+
+        #create a separate container for VFX
+        self.vfxContainer = PIXI.Container()
+        self.stage.addChild(self.vfxContainer)
 
     def drawGrid(self):
         # self.graphics.js_clear()
@@ -128,6 +133,28 @@ class GameplayScreen(Scene):
     def onAnimationFinished(self):
         self.disableInput = False
         self.drawGrid()
+        
+        if self.anymerge:
+            (er, ec) = self.anymerge.end
+            (x, y) = self.getPosition(er, ec)
+            res = PIXI.loader.resources
+            texture = res["sparks"].texture
+            jsondata = res["vfx_blast"].data
+            print(f"Creating particle emitter at {x},{y}, {jsondata}, {texture}")
+
+            blastColors = [
+                '#00ffee',
+                '#f235f2',
+                '#f2ff00'
+            ]
+            for i in range(0, 5):
+                jsondata.color.start = random.choice(blastColors)
+                emitter = PIXI.particles.Emitter(self.vfxContainer, [texture], jsondata)
+                emitter.ownerPos.y = y + random.randint(-cellSizeY/2, cellSizeY/2)
+                emitter.ownerPos.x = x + random.randint(-cellSizeX/2, cellSizeX/2)
+                emitter.emit= True
+                emitter.playOnceAndDestroy()
+                emitter.autoUpdate = True
 
     def onSlideAnimationFinished(self):
         self.drawGrid()
@@ -137,10 +164,11 @@ class GameplayScreen(Scene):
             self.onAnimationFinished()
             return
 
-        if self.anymerge >= 256:
-            self.sounds["milestone"].play()
-        elif self.anymerge > 0:
-            self.sounds["merge"].play()
+        if self.anymerge:
+            if self.anymerge.value >= 256:
+                self.sounds["milestone"].play()
+            elif self.anymerge.value > 0:
+                self.sounds["merge"].play()
 
         new_tile_info = self.game.add_random_tile()
         if new_tile_info:
@@ -194,7 +222,7 @@ class GameplayScreen(Scene):
     def animateSlide(self, merged_coords):
         self.anyslide = False
         self.disableInput = True
-        self.anymerge = 0
+        self.anymerge = None
         for mc in merged_coords:
             print(f"Type: {mc.js_type}, Source: {mc.source}, End: {mc.end}, Value: {mc.value}")
             #create a new graphics object to animate for each merged coordinate
@@ -217,8 +245,8 @@ class GameplayScreen(Scene):
                 if(sr == er and sc == ec):
                     (sr, sc) = mc.sources[0]
                 self.anyslide = True
-                self.anymerge = value
                 new_mc = {"value": value, "source": (sr, sc), "end": (er, ec)}
+                self.anymerge = new_mc
                 self.handleMoveAnimation(new_mc)
 
         if self.anyslide:
