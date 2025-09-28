@@ -16,5 +16,11 @@ ASSETS = [
     {"name":"map", "url":"assets/images/map1.png"},
 ]
 
+SFX_FILES = [
+    {"name": "swish", "url": "assets/audio/swish.wav"},
+    {"name": "merge", "url": "assets/audio/merge.wav"},
+    {"name": "milestone", "url": "assets/audio/milestone.wav"},
+]
+
 FONT_CONFIG = { 'font': '64px Kenney-Pixel-Square', 'align': 'center' }
 HEADER_FONT_CONFIG = { 'font': '96px Kenney-Pixel-Square', 'align': 'center' }

@@ -7,7 +7,8 @@ from com.pixi import PIXI
 from com.vkgd.common.scene import Scene
 from com.vkgd.common.constants import *
 from com.vkgd.Game2048 import Game2048
-from com.vkgd.assets import FONT_CONFIG, HEADER_FONT_CONFIG
+from com.vkgd.assets import *
+from com.howler import PyHowl
 
 cellSize = 128
 
@@ -35,6 +36,12 @@ class GameplayScreen(Scene):
         self.disableInput = False
         self.textDisplay = []
         self.imgDisplay = []
+
+        self.sounds = {}
+        for sfx_files in SFX_FILES:
+            name = sfx_files['name']
+            url = sfx_files['url']
+            self.sounds[name] = PyHowl({"src":url, "preload": True})
 
         for r in range(self.game.size):
             row = []
@@ -130,6 +137,9 @@ class GameplayScreen(Scene):
             self.onAnimationFinished()
             return
 
+        if self.anymerge:
+            self.sounds["merge"].play()
+
         new_tile_info = self.game.add_random_tile()
         if new_tile_info:
             r, c, value = new_tile_info
@@ -182,6 +192,7 @@ class GameplayScreen(Scene):
     def animateSlide(self, merged_coords):
         self.anyslide = False
         self.disableInput = True
+        self.anymerge = False
         for mc in merged_coords:
             print(f"Type: {mc.js_type}, Source: {mc.source}, End: {mc.end}, Value: {mc.value}")
             #create a new graphics object to animate for each merged coordinate
@@ -204,9 +215,12 @@ class GameplayScreen(Scene):
                 if(sr == er and sc == ec):
                     (sr, sc) = mc.sources[0]
                 self.anyslide = True
+                self.anymerge = True
                 new_mc = {"value": value, "source": (sr, sc), "end": (er, ec)}
                 self.handleMoveAnimation(new_mc)
-                
+
+        if self.anyslide:
+            self.sounds["swish"].play()  
         #redraw the grid after animation
         window.setTimeout(self.onSlideAnimationFinished, 120)
 
@@ -215,8 +229,7 @@ class GameplayScreen(Scene):
             if self.gameOver:
                 window.location.reload()
                 return
-
-        if e_name == EVENT_MOVE:
+        elif e_name == EVENT_MOVE:
             if self.disableInput:
                 return
 

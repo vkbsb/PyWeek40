@@ -41,8 +41,9 @@ class Game:
         
         # Register once
         window.addEventListener('resize', self.onResize)
-        window.addEventListener('touchstart', self.onTouchStart)
-        window.addEventListener('mousedown', self.onMouseDown)
+        window.addEventListener('pointerdown', self.onMouseDown)
+        window.addEventListener('pointerup', self.onMouseUp)
+        # window.addEventListener('mousedown', self.onMouseDown)
         window.addEventListener('keydown', self.onKeyDown)
 
     def onKeyDown(self, e):
@@ -60,21 +61,43 @@ class Game:
                 self.screen.onEvent(EVENT_MOVE, direction)
             e.preventDefault()
 
+    def onMouseUp(self, e):
+        x = int((e.clientX - self.rootStage.x)/self.scale)  
+        y = int((e.clientY - self.rootStage.y)/self.scale)
+        print(f"x:{x}, y:{y}, rx:{self.rootStage.x}, ry:{self.rootStage.y}")
+        e.preventDefault()
+        
+        if self.screen != None:
+            self.screen.onEvent(EVENT_MOUSEUP, (x,y))
+            endPos = (x,y)            
+            xdiff = endPos[0] - self.startPos[0]
+            ydiff = endPos[1] - self.startPos[1]
+            if abs(xdiff) > abs(ydiff):
+                if xdiff > 0:
+                    self.screen.onEvent(EVENT_MOVE, Game2048.move_right)
+                else:
+                    self.screen.onEvent(EVENT_MOVE, Game2048.move_left)
+            else:
+                if ydiff > 0:
+                    self.screen.onEvent(EVENT_MOVE, Game2048.move_down)
+                else:
+                    self.screen.onEvent(EVENT_MOVE, Game2048.move_up)
 
     def onMouseDown(self, e):
         x = int((e.clientX - self.rootStage.x)/self.scale)
         y = int((e.clientY - self.rootStage.y)/self.scale)
-        # print(f"x:{x}, y:{y}, rx:{self.rootStage.x}, ry:{self.rootStage.y}")
+        print(f"x:{x}, y:{y}, rx:{self.rootStage.x}, ry:{self.rootStage.y}")
         e.preventDefault()
 
         #send the x,y in the design resolution space with origin at center of screen.
         self.screen.onEvent(EVENT_MOUSEDOWN, (x,y))
+        self.startPos = (x,y)
 
     def onTouchStart(self, e):
         touch = e.changedTouches[0]
         x = int((touch.clientX - self.rootStage.x)/self.scale)
         y = int((touch.clientY - self.rootStage.y)/self.scale)
-        # print(f"x:{x}, y:{y}, rx:{self.rootStage.x}, ry:{self.rootStage.y}")
+        print(f"x:{x}, y:{y}, rx:{self.rootStage.x}, ry:{self.rootStage.y}")
         e.preventDefault()
 
         #send the x,y in the design resolution space with origin at center of screen.
