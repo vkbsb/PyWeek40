@@ -137,7 +137,9 @@ class GameplayScreen(Scene):
             self.onAnimationFinished()
             return
 
-        if self.anymerge:
+        if self.anymerge >= 256:
+            self.sounds["milestone"].play()
+        elif self.anymerge > 0:
             self.sounds["merge"].play()
 
         new_tile_info = self.game.add_random_tile()
@@ -192,7 +194,7 @@ class GameplayScreen(Scene):
     def animateSlide(self, merged_coords):
         self.anyslide = False
         self.disableInput = True
-        self.anymerge = False
+        self.anymerge = 0
         for mc in merged_coords:
             print(f"Type: {mc.js_type}, Source: {mc.source}, End: {mc.end}, Value: {mc.value}")
             #create a new graphics object to animate for each merged coordinate
@@ -215,7 +217,7 @@ class GameplayScreen(Scene):
                 if(sr == er and sc == ec):
                     (sr, sc) = mc.sources[0]
                 self.anyslide = True
-                self.anymerge = True
+                self.anymerge = value
                 new_mc = {"value": value, "source": (sr, sc), "end": (er, ec)}
                 self.handleMoveAnimation(new_mc)
 
